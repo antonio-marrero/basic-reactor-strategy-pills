@@ -11,8 +11,7 @@ public class App {
 	}
 	
 	/**
-	 * Target: 		To make a flux to emit its items at a fix interval rate
-	 * 
+	 * Target: 		To make a flux to emit its items at a fix interval rate.
 	 * Strategy:	Zip the emitting items together with an interval flux
 	 */
 	public static void emitAtFixInterval(){
