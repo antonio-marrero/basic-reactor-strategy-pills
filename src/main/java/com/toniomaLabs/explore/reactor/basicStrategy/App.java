@@ -52,7 +52,8 @@ public class App {
 				"ALERT:Incorrect pwd. Attempt no.2",
 				"INFO:Successful Login"});
 		
-		flux.flatMap(msg -> {
+		flux.map(msg -> handlePreprocess(msg))
+		.flatMap(msg -> {
 			if(msg.startsWith("INFO"))
 				return handleInfoNotification(msg);
 			else 
@@ -60,6 +61,10 @@ public class App {
 		.map(notif -> handleNotification(notif))
 		.subscribe(System.out::println);				
 		
+	}
+	
+	private static String handlePreprocess(String msg){
+		return msg + " - pre-processed ";
 	}
 	
 	private static Flux<? extends String> handleInfoNotification(String msg){
@@ -75,6 +80,6 @@ public class App {
 	}
 	
 	private static String handleNotification(String notif){
-		return notif + " - Processed!!";
+		return notif + " - processed";
 	}
 }
