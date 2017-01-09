@@ -3,11 +3,13 @@ package com.toniomaLabs.explore.reactor.basicStrategy;
 import java.util.concurrent.CountDownLatch;
 
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 public class App {
 
 	public static void main(String[] args) {
-		emitAtFixInterval();
+		//emitAtFixInterval();
+		conditionalProcessing();
 	}
 	
 	/**
@@ -33,5 +35,46 @@ public class App {
 			e.printStackTrace();
 		}
 	}
-
+	
+	
+	/**
+	 * Target:
+	 * To execute different process pipelines depending on a property of the emitted values
+	 * 
+	 * Strategy:
+	 * Apply the condition in a Flatmap so that you can process in different flux 
+	 */
+	public static void conditionalProcessing(){
+		Flux<String> flux = Flux.fromArray(new String[]{
+				"INFO:Server started",
+				"INFO:Request for login",
+				"ALERT:Incorrect pwd. Attempt no.1",
+				"ALERT:Incorrect pwd. Attempt no.2",
+				"INFO:Successful Login"});
+		
+		flux.flatMap(msg -> {
+			if(msg.startsWith("INFO"))
+				return handleInfoNotification(msg);
+			else 
+				return handleAlertNotification(msg);})
+		.map(notif -> handleNotification(notif))
+		.subscribe(System.out::println);				
+		
+	}
+	
+	private static Flux<? extends String> handleInfoNotification(String msg){
+		return Flux.just(msg)
+				.publishOn(Schedulers.single())
+				.map(val -> val.toLowerCase());
+	}
+	
+	private static Flux<String> handleAlertNotification(String msg){
+		return Flux.just(msg)
+				.publishOn(Schedulers.single())
+				.map(val -> val.toUpperCase());
+	}
+	
+	private static String handleNotification(String notif){
+		return notif + " - Processed!!";
+	}
 }
