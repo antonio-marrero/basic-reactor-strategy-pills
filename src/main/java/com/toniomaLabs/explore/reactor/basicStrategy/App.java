@@ -7,9 +7,10 @@ import reactor.core.scheduler.Schedulers;
 
 public class App {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		conditionalProcessing();
 		emitAtFixInterval();
+		parallelProcessing();
 		
 	}
 	
@@ -38,4 +39,27 @@ public class App {
 		cp.getFlux().subscribe(System.out::println);
 	}
 	
+	
+	public static void parallelProcessing() throws InterruptedException{
+		SpinParallelThreads spinParallelThreads = new SpinParallelThreads();
+		
+		CountDownLatch latchFlatMap = new CountDownLatch(1);
+		spinParallelThreads.getFlatMapThreads()
+			.doAfterTerminate(latchFlatMap::countDown)
+			.subscribe( m -> System.out.println("Subscriber received - " + m + " on thread: " 
+					+ Thread.currentThread().getName()));
+		
+		latchFlatMap.await();
+		System.out.println("\n - FlatMap threads processed - \n");
+		
+		CountDownLatch latchParallel = new CountDownLatch(1);
+		spinParallelThreads.getParallelThreads()
+			.doAfterTerminate(latchParallel::countDown)
+			.subscribe( m -> System.out.println("Subscriber received - " + m + " on thread: " 
+					+ Thread.currentThread().getName()));
+		
+		latchParallel.await();
+		System.out.println("\n - Parallel threads processed - \n");
+		
+	}
 }
